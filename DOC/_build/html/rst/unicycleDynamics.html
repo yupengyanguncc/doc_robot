@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unicycleDynamics module &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unicycleDynamics module</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">unicycleDynamics module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/rst/unicycleDynamics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-unicycleDynamics">
+<span id="unicycledynamics-module"></span><h1>unicycleDynamics module<a class="headerlink" href="#module-unicycleDynamics" title="Permalink to this heading"></a></h1>
+<blockquote>
+<div><p>Author :       yyang52
+date：          8/24/23</p>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="unicycleDynamics.create_unicycle_pose_controller">
+<span class="sig-prename descclassname"><span class="pre">unicycleDynamics.</span></span><span class="sig-name descname"><span class="pre">create_unicycle_pose_controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach_angle_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired_angle_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_error_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/unicycleDynamics.html#create_unicycle_pose_controller"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unicycleDynamics.create_unicycle_pose_controller" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a controller ($u: mathbf{R}^{3     imes N}         imes mathbf{R}^{3      imes N}         o mathbf{R}^{2         imes N}$)
+that will drive a unicycle-modeled agent to a pose (i.e., position &amp; orientation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>approach_angle_gain</strong> – affects how the unicycle approaches the desired position</p></li>
+<li><p><strong>desired_angle_gain</strong> – affects how the unicycle approaches the desired angle</p></li>
+<li><p><strong>rotation_error_gain</strong> – affects how quickly the unicycle corrects rotation errors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the pose_uni_clf_controller_custom function</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">controller</span> <span class="o">=</span> <span class="n">create_unicycle_pose_controller</span><span class="p">(</span><span class="n">approach_angle_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">desired_angle_gain</span><span class="o">=</span><span class="mf">2.7</span><span class="p">,</span> <span class="n">rotation_error_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

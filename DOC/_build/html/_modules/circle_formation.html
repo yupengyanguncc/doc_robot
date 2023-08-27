@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>circle_formation &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">circle_formation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for circle_formation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;A circle formation algorithm for multiple agents.</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd">   Author:       yyang52</span>
+<span class="sd">   date：          8/25/23</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd"> Change Activity:</span>
+<span class="sd">                   8/25/23:</span>
+<span class="sd">-------------------------------------------------</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;yyang52&#39;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="circleFormation"><a class="viewcode-back" href="../rst/circle_formation.html#circle_formation.circleFormation">[docs]</a><span class="k">def</span> <span class="nf">circleFormation</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">member_idx_cell</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                    <span class="n">main_target_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">radius_circle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                    <span class="n">timercount</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                    <span class="n">position_uni_clf_controller</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the control inputs for multiple agents.</span>
+
+<span class="sd">    :param x: The current positions of all agents.</span>
+<span class="sd">    :param member_idx_cell: A list containing indices for each group of agents.</span>
+<span class="sd">    :param main_target_pos: The main target positions.</span>
+<span class="sd">    :param radius_circle: The radius of the circle.</span>
+<span class="sd">    :param timercount: A counter for the loop.</span>
+<span class="sd">    :param position_uni_clf_controller: The controller function.</span>
+<span class="sd">    :return: The computed control inputs.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">      \\theta_{\\text{vec}} = \\frac{1}{N_m} \\times 2\\pi \\times \\text{np.arange}(N_m) + \\frac{2\\pi}{N_m \\times 50} \\times \\text{timercount}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dxu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">ijk_h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">Nm</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">member_idx_cell</span><span class="p">[</span><span class="n">ijk_h</span><span class="p">])</span>
+        <span class="n">theta_vec</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">Nm</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Nm</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">Nm</span> <span class="o">/</span> <span class="mi">50</span> <span class="o">*</span> <span class="n">timercount</span>
+        <span class="n">x_poses</span> <span class="o">=</span> <span class="n">radius_circle</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_vec</span><span class="p">)</span>
+        <span class="n">y_poses</span> <span class="o">=</span> <span class="n">radius_circle</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_vec</span><span class="p">)</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x_poses</span><span class="p">,</span> <span class="n">y_poses</span><span class="p">])</span>
+
+        <span class="n">x_init</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="n">member_idx_cell</span><span class="p">[</span><span class="n">ijk_h</span><span class="p">]]</span>
+        <span class="n">x_goal</span> <span class="o">=</span> <span class="n">main_target_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="n">member_idx_cell</span><span class="p">[</span><span class="n">ijk_h</span><span class="p">]]</span> <span class="o">+</span> <span class="n">poses</span>
+        <span class="n">dxi_tmp</span> <span class="o">=</span> <span class="n">position_uni_clf_controller</span><span class="p">(</span><span class="n">x_init</span><span class="p">,</span> <span class="n">x_goal</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x_init</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">x_goal</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dxi_tmp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">dxu</span><span class="p">[:,</span> <span class="n">member_idx_cell</span><span class="p">[</span><span class="n">ijk_h</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dxi_tmp</span>
+
+    <span class="k">return</span> <span class="n">dxu</span></div>
+
+<div class="viewcode-block" id="create_clf_unicycle_position_controller"><a class="viewcode-back" href="../rst/circle_formation.html#circle_formation.create_clf_unicycle_position_controller">[docs]</a><span class="k">def</span> <span class="nf">create_clf_unicycle_position_controller</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">angular_velocity_gain</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a unicycle model pose controller.  Drives the unicycle model to a given position</span>
+<span class="sd">    and orientation.</span>
+
+<span class="sd">    :param linear_velocity_gain: affects how quickly the unicycle approaches the desired position</span>
+<span class="sd">    :param angular_velocity_gain: affects how quickly the unicycle approaches the desired angle</span>
+<span class="sd">    :return: The pose_uni_clf_controller_custom function</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">       u: \\mathbf{R}^{3 \\times N} \\times \\mathbf{R}^{2 \\times N} \\to \\mathbf{R}^{2 \\times N}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                             <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_clf_unicycle_position_controller, the linear velocity gain (linear_velocity_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">linear_velocity_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">angular_velocity_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                              <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_clf_unicycle_position_controller, the angular velocity gain (angular_velocity_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">angular_velocity_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">linear_velocity_gain</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_clf_unicycle_position_controller, the linear velocity gain (linear_velocity_gain) must be greater than or equal to zero. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">linear_velocity_gain</span>
+    <span class="k">assert</span> <span class="n">angular_velocity_gain</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_clf_unicycle_position_controller, the angular velocity gain (angular_velocity_gain) must be greater than or equal to zero. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">angular_velocity_gain</span>
+
+    <span class="k">def</span> <span class="nf">position_uni_clf_controller</span><span class="p">(</span><span class="n">states</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A position controller for unicycle models.  This utilized a control lyapunov function</span>
+<span class="sd">        (CLF) to drive a unicycle system to a desired position. This function operates on unicycle</span>
+<span class="sd">        states and desired positions to return a unicycle velocity command vector.</span>
+
+<span class="sd">        :param states: 3xN numpy array (of unicycle states, [x;y;theta])</span>
+<span class="sd">        :param positions: 2xN numpy array (of desired positons, [x_goal;y_goal])</span>
+<span class="sd">        :return: 2xN numpy array (of unicycle control inputs)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_clf_unicycle_position_controller function, the single-integrator robot states (xi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_clf_unicycle_position_controller function, the robot goal points (positions) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_clf_unicycle_position_controller function, the dimension of the unicycle robot states (states) must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_clf_unicycle_position_controller function, the dimension of the robot goal positions (positions) must be 2 ([x_goal;y_goal]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the function created by the create_clf_unicycle_position_controller function, the number of unicycle robot states (states) must be equal to the number of robot goal positions (positions). Recieved a current robot pose input array (states) of size </span><span class="si">%r</span><span class="s2"> states </span><span class="si">%r</span><span class="s2"> and desired position array (positions) of size </span><span class="si">%r</span><span class="s2"> states </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">dxu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+
+        <span class="n">pos_error</span> <span class="o">=</span> <span class="n">positions</span> <span class="o">-</span> <span class="n">states</span><span class="p">[:</span><span class="mi">2</span><span class="p">][:]</span>
+        <span class="n">rot_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pos_error</span><span class="p">[</span><span class="mi">1</span><span class="p">][:],</span> <span class="n">pos_error</span><span class="p">[</span><span class="mi">0</span><span class="p">][:])</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pos_error</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">linear_velocity_gain</span> <span class="o">*</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rot_error</span> <span class="o">-</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">][:])</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">angular_velocity_gain</span> <span class="o">*</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rot_error</span> <span class="o">-</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">][:])</span>
+
+        <span class="k">return</span> <span class="n">dxu</span>
+
+    <span class="k">return</span> <span class="n">position_uni_clf_controller</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

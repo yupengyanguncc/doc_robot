@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>transformations &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">transformations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for transformations</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="create_si_to_uni_dynamics"><a class="viewcode-back" href="../rst/transformations.html#transformations.create_si_to_uni_dynamics">[docs]</a><span class="k">def</span> <span class="nf">create_si_to_uni_dynamics</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">angular_velocity_limit</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a function mapping from single-integrator to unicycle dynamics with angular velocity magnitude restrictions.</span>
+
+<span class="sd">        linear_velocity_gain: Gain for unicycle linear velocity</span>
+<span class="sd">        angular_velocity_limit: Limit for angular velocity (i.e., |w| &lt; angular_velocity_limit)</span>
+
+<span class="sd">        -&gt; function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)),</span> <span class="p">(</span>
+                <span class="s2">&quot;In the function create_si_to_uni_dynamics, the linear velocity gain (linear_velocity_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">linear_velocity_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">angular_velocity_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)),</span> <span class="p">(</span>
+                <span class="s2">&quot;In the function create_si_to_uni_dynamics, the angular velocity limit (angular_velocity_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">angular_velocity_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">linear_velocity_gain</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the linear velocity gain (linear_velocity_gain) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">linear_velocity_gain</span>
+    <span class="k">assert</span> <span class="n">angular_velocity_limit</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the angular velocity limit (angular_velocity_limit) must not be negative. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">angular_velocity_limit</span>
+
+    <span class="k">def</span> <span class="nf">si_to_uni_dyn</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">poses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A mapping from single-integrator to unicycle dynamics.</span>
+
+<span class="sd">        dxi: 2xN numpy array with single-integrator control inputs</span>
+<span class="sd">        poses: 2xN numpy array with single-integrator poses</span>
+
+<span class="sd">        -&gt; 2xN numpy array of unicycle control inputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics function, the single integrator velocity inputs (dxi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxi</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics function, the current robot poses (poses) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics function, the dimension of the single integrator velocity inputs (dxi) must be 2 ([x_dot;y_dot]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics function, the dimension of the current pose of each robot must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics function, the number of single integrator velocity inputs must be equal to the number of current robot poses. Recieved a single integrator velocity input array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and current pose array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dxi</span><span class="p">)</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="n">dxu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">linear_velocity_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">angular_velocity_limit</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dxu</span>
+
+    <span class="k">return</span> <span class="n">si_to_uni_dyn</span></div>
+
+
+<div class="viewcode-block" id="create_si_to_uni_dynamics_with_backwards_motion"><a class="viewcode-back" href="../rst/transformations.html#transformations.create_si_to_uni_dynamics_with_backwards_motion">[docs]</a><span class="k">def</span> <span class="nf">create_si_to_uni_dynamics_with_backwards_motion</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">angular_velocity_limit</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a function mapping from single-integrator dynamics to unicycle dynamics. This implementation of</span>
+<span class="sd">    the mapping allows for robots to drive backwards if that direction of linear velocity requires less rotation.</span>
+
+<span class="sd">        linear_velocity_gain: Gain for unicycle linear velocity</span>
+<span class="sd">        angular_velocity_limit: Limit for angular velocity (i.e., |w| &lt; angular_velocity_limit)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linear_velocity_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                             <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the linear velocity gain (linear_velocity_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">linear_velocity_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">angular_velocity_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                               <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the angular velocity limit (angular_velocity_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">angular_velocity_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">linear_velocity_gain</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the linear velocity gain (linear_velocity_gain) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">linear_velocity_gain</span>
+    <span class="k">assert</span> <span class="n">angular_velocity_limit</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_dynamics, the angular velocity limit (angular_velocity_limit) must not be negative. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">angular_velocity_limit</span>
+
+    <span class="k">def</span> <span class="nf">si_to_uni_dyn</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">poses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A mapping from single-integrator to unicycle dynamics.</span>
+
+<span class="sd">        dxi: 2xN numpy array with single-integrator control inputs</span>
+<span class="sd">        poses: 2xN numpy array with single-integrator poses</span>
+
+<span class="sd">        -&gt; 2xN numpy array of unicycle control inputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics_with_backwards_motion function, the single integrator velocity inputs (dxi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxi</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics_with_backwards_motion function, the current robot poses (poses) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics_with_backwards_motion function, the dimension of the single integrator velocity inputs (dxi) must be 2 ([x_dot;y_dot]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics_with_backwards_motion function, the dimension of the current pose of each robot must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_dynamics_with_backwards_motion function, the number of single integrator velocity inputs must be equal to the number of current robot poses. Recieved a single integrator velocity input array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and current pose array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dxi</span><span class="p">)</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="n">dxu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">linear_velocity_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">angular_velocity_limit</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dxu</span>
+
+    <span class="k">return</span> <span class="n">si_to_uni_dyn</span></div>
+
+
+<div class="viewcode-block" id="create_si_to_uni_mapping"><a class="viewcode-back" href="../rst/transformations.html#transformations.create_si_to_uni_mapping">[docs]</a><span class="k">def</span> <span class="nf">create_si_to_uni_mapping</span><span class="p">(</span><span class="n">projection_distance</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">angular_velocity_limit</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates two functions for mapping from single integrator dynamics to</span>
+<span class="sd">    unicycle dynamics and unicycle states to single integrator states.</span>
+<span class="sd">    This mapping is done by placing a virtual control &quot;point&quot; in front of</span>
+<span class="sd">    the unicycle.</span>
+
+<span class="sd">    :param projection_distance: How far ahead to place the point</span>
+<span class="sd">    :param angular_velocity_limit: The maximum angular velocity that can be provided</span>
+
+<span class="sd">    :return: (si_to_uni_dyn, uni_to_si_states)</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">    ---------</span>
+<span class="sd">    &gt;&gt;&gt; si_to_uni_dyn, uni_to_si_states = create_si_to_uni_mapping()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">projection_distance</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                            <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_si_to_uni_mapping, the projection distance of the new control point (projection_distance) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">projection_distance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">angular_velocity_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                               <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_si_to_uni_mapping, the maximum angular velocity command (angular_velocity_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">angular_velocity_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">projection_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_mapping, the projection distance of the new control point (projection_distance) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">projection_distance</span>
+    <span class="k">assert</span> <span class="n">projection_distance</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_si_to_uni_mapping, the maximum angular velocity command (angular_velocity_limit) must be greater than or equal to zero. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">angular_velocity_limit</span>
+
+    <span class="k">def</span> <span class="nf">si_to_uni_dyn</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">poses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes single-integrator velocities and transforms them to unicycle</span>
+<span class="sd">        control inputs.</span>
+
+<span class="sd">        :param dxi: 2xN numpy array of single-integrator control inputs</span>
+<span class="sd">        :param poses: 3xN numpy array of unicycle poses</span>
+
+<span class="sd">        :return: 2xN numpy array of unicycle control inputs</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">        ---------</span>
+<span class="sd">        &gt;&gt;&gt; dxu = si_to_uni_dyn(dxi, poses)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_mapping function, the single integrator velocity inputs (dxi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxi</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_mapping function, the current robot poses (poses) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_mapping function, the dimension of the single integrator velocity inputs (dxi) must be 2 ([x_dot;y_dot]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_mapping function, the dimension of the current pose of each robot must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the si_to_uni_dyn function created by the create_si_to_uni_mapping function, the number of single integrator velocity inputs must be equal to the number of current robot poses. Recieved a single integrator velocity input array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and current pose array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dxi</span><span class="p">)</span>
+
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="n">dxu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">cs</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">ss</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">projection_distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">ss</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">cs</span> <span class="o">*</span> <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="c1"># Impose angular velocity cap.</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&gt;</span> <span class="n">angular_velocity_limit</span><span class="p">]</span> <span class="o">=</span> <span class="n">angular_velocity_limit</span>
+        <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">angular_velocity_limit</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">angular_velocity_limit</span>
+
+        <span class="k">return</span> <span class="n">dxu</span>
+
+    <span class="k">def</span> <span class="nf">uni_to_si_states</span><span class="p">(</span><span class="n">poses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes unicycle states and returns single-integrator states</span>
+
+<span class="sd">        :param poses: 3xN numpy array of unicycle states</span>
+<span class="sd">        :return: 2xN numpy array of single-integrator states</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">        ---------</span>
+<span class="sd">        &gt;&gt;&gt; dxi = uni_to_si_states(poses)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span>
+
+        <span class="n">si_states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">si_states</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">poses</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">projection_distance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">si_states</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">poses</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">projection_distance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="k">return</span> <span class="n">si_states</span>
+
+    <span class="k">return</span> <span class="n">si_to_uni_dyn</span><span class="p">,</span> <span class="n">uni_to_si_states</span></div>
+
+
+<div class="viewcode-block" id="create_uni_to_si_dynamics"><a class="viewcode-back" href="../rst/transformations.html#transformations.create_uni_to_si_dynamics">[docs]</a><span class="k">def</span> <span class="nf">create_uni_to_si_dynamics</span><span class="p">(</span><span class="n">projection_distance</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates two functions for mapping from unicycle dynamics to single</span>
+<span class="sd">    integrator dynamics and single integrator states to unicycle states.</span>
+<span class="sd">    This mapping is done by placing a virtual control &quot;point&quot; in front of</span>
+<span class="sd">    the unicycle.</span>
+<span class="sd">    :param projection_distance: How far ahead to place the point</span>
+<span class="sd">    :return: (uni_to_si_dyn)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">projection_distance</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                            <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_uni_to_si_dynamics, the projection distance of the new control point (projection_distance) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">projection_distance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">projection_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_uni_to_si_dynamics, the projection distance of the new control point (projection_distance) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">projection_distance</span>
+
+    <span class="k">def</span> <span class="nf">uni_to_si_dyn</span><span class="p">(</span><span class="n">dxu</span><span class="p">,</span> <span class="n">poses</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A function for converting from unicycle to single-integrator dynamics.</span>
+<span class="sd">        Utilizes a virtual point placed in front of the unicycle.</span>
+<span class="sd">        :param dxu: 2xN numpy array of unicycle control inputs</span>
+<span class="sd">        :param poses: 3xN numpy array of unicycle poses</span>
+<span class="sd">        :return: 2xN numpy array of single-integrator control inputs</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxu</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the uni_to_si_dyn function created by the create_uni_to_si_dynamics function, the unicycle velocity inputs (dxu) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxu</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the uni_to_si_dyn function created by the create_uni_to_si_dynamics function, the current robot poses (poses) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the uni_to_si_dyn function created by the create_uni_to_si_dynamics function, the dimension of the unicycle velocity inputs (dxu) must be 2 ([v;w]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the uni_to_si_dyn function created by the create_uni_to_si_dynamics function, the dimension of the current pose of each robot must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the uni_to_si_dyn function created by the create_uni_to_si_dynamics function, the number of unicycle velocity inputs must be equal to the number of current robot poses. Recieved a unicycle velocity input array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and current pose array of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dxu</span><span class="p">)</span>
+
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="n">dxi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">dxi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">cs</span> <span class="o">*</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">projection_distance</span> <span class="o">*</span> <span class="n">ss</span> <span class="o">*</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">dxi</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ss</span> <span class="o">*</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">projection_distance</span> <span class="o">*</span> <span class="n">cs</span> <span class="o">*</span> <span class="n">dxu</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="k">return</span> <span class="n">dxi</span>
+
+    <span class="k">return</span> <span class="n">uni_to_si_dyn</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>util &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">util</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for util</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">coppeliasim_zmqremoteapi_client</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A collection of functions to interface simulation and Khepera IV Robots</span>
+<span class="sd">Takes and OOP approach to manage the robots.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Robot"><a class="viewcode-back" href="../rst/util.html#util.Robot">[docs]</a><span class="k">class</span> <span class="nc">Robot</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">left_motor</span><span class="p">,</span> <span class="n">right_motor</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left_motor</span> <span class="o">=</span> <span class="n">left_motor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right_motor</span> <span class="o">=</span> <span class="n">right_motor</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Kp</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Vmax</span> <span class="o">=</span> <span class="mf">0.08</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wmax</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="Robot.get_flag"><a class="viewcode-back" href="../rst/util.html#util.Robot.get_flag">[docs]</a>    <span class="k">def</span> <span class="nf">get_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flag</span></div>
+
+<div class="viewcode-block" id="Robot.get_position"><a class="viewcode-back" href="../rst/util.html#util.Robot.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObjectPosition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ori_body</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObjectOrientation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">ori_body</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">xc</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">yc</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">,</span> <span class="n">theta</span></div>
+
+<div class="viewcode-block" id="Robot.control"><a class="viewcode-back" href="../rst/util.html#util.Robot.control">[docs]</a>    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="c1"># TODO add theta and position to robot class</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">xp</span> <span class="o">-</span> <span class="n">xc</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">yp</span> <span class="o">-</span> <span class="n">yc</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">yp</span> <span class="o">-</span> <span class="n">yc</span><span class="p">,</span> <span class="n">xp</span> <span class="o">-</span> <span class="n">xc</span><span class="p">)</span>
+        <span class="n">Oc</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">-</span> <span class="n">theta</span>
+
+        <span class="k">if</span> <span class="n">d</span> <span class="o">&gt;=</span> <span class="mf">0.05</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wmax</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Oc</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Kp</span> <span class="o">*</span> <span class="n">d</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vmax</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vmax</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flag</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span></div>
+
+<div class="viewcode-block" id="Robot.update_velocity"><a class="viewcode-back" href="../rst/util.html#util.Robot.update_velocity">[docs]</a>    <span class="k">def</span> <span class="nf">update_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="n">Vr</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">v</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">Vl</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">v</span> <span class="o">-</span> <span class="n">w</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left_motor</span><span class="p">,</span> <span class="mf">47.5930</span> <span class="o">*</span> <span class="n">Vl</span><span class="p">)</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right_motor</span><span class="p">,</span> <span class="mf">47.5930</span> <span class="o">*</span> <span class="n">Vr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Robot.stop"><a class="viewcode-back" href="../rst/util.html#util.Robot.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim</span><span class="p">):</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left_motor</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right_motor</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Robot.start"><a class="viewcode-back" href="../rst/util.html#util.Robot.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim</span><span class="p">):</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left_motor</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">setJointTargetVelocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right_motor</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="start_sim"><a class="viewcode-back" href="../rst/util.html#util.start_sim">[docs]</a><span class="k">def</span> <span class="nf">start_sim</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Starts Simulation for Coppelia Sim</span>
+<span class="sd">    :return: sim, client</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">RemoteAPIClient</span><span class="p">()</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;sim&#39;</span><span class="p">)</span>
+
+    <span class="n">sim</span><span class="o">.</span><span class="n">startSimulation</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">sim</span><span class="p">,</span> <span class="n">client</span></div>
+
+
+<div class="viewcode-block" id="init_robots"><a class="viewcode-back" href="../rst/util.html#util.init_robots">[docs]</a><span class="k">def</span> <span class="nf">init_robots</span><span class="p">(</span><span class="n">sim</span><span class="p">):</span>
+    <span class="n">robots</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">loop</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">left_motor</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Left_Motor&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">right_motor</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Right_Motor&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Target_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+
+            <span class="n">agent</span> <span class="o">=</span> <span class="n">Robot</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">left_motor</span><span class="p">,</span> <span class="n">right_motor</span><span class="p">)</span>
+            <span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+            <span class="n">robots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
+
+            <span class="n">agent</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="n">ultrasonic_status</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">infrared_status</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">robots</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">count</span></div>
+
+
+<div class="viewcode-block" id="is_all_stopped"><a class="viewcode-back" href="../rst/util.html#util.is_all_stopped">[docs]</a><span class="k">def</span> <span class="nf">is_all_stopped</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if all robots are stopped</span>
+<span class="sd">    :param arr: array of robots</span>
+<span class="sd">    :return: True if all robots are stopped, False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ultrasonic_status"><a class="viewcode-back" href="../rst/util.html#util.ultrasonic_status">[docs]</a><span class="k">def</span> <span class="nf">ultrasonic_status</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">is_disabled</span><span class="p">,</span> <span class="n">robot_index</span><span class="p">):</span>
+    <span class="n">ultrasonic_sensor</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">is_disabled</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">sim</span><span class="o">.</span><span class="n">setExplicitHandling</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Ultrasonic_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">robot_index</span><span class="p">,</span> <span class="n">i</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">ultrasonic_sensor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Ultrasonic_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">robot_index</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">ultrasonic_sensor</span></div>
+
+
+<div class="viewcode-block" id="infrared_status"><a class="viewcode-back" href="../rst/util.html#util.infrared_status">[docs]</a><span class="k">def</span> <span class="nf">infrared_status</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">is_disabled</span><span class="p">,</span> <span class="n">robot_index</span><span class="p">):</span>
+    <span class="n">infrared_sensor</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">is_disabled</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">sim</span><span class="o">.</span><span class="n">setExplicitHandling</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">getObjectHandle</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Ultrasonic_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">robot_index</span><span class="p">,</span> <span class="n">i</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">infrared_sensor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObjectHandle</span><span class="p">(</span><span class="s1">&#39;/Khepera_IV[</span><span class="si">%s</span><span class="s1">]/K4_Infrared_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">robot_index</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">infrared_sensor</span></div>
+
+
+<div class="viewcode-block" id="get_target_position"><a class="viewcode-back" href="../rst/util.html#util.get_target_position">[docs]</a><span class="k">def</span> <span class="nf">get_target_position</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="n">tar</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">getObjectPosition</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">tar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">yp</span> <span class="o">=</span> <span class="n">tar</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">xp</span><span class="p">,</span> <span class="n">yp</span></div>
+
+
+<div class="viewcode-block" id="set_velocities"><a class="viewcode-back" href="../rst/util.html#util.set_velocities">[docs]</a><span class="k">def</span> <span class="nf">set_velocities</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">robots</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets the velocities of the current agents.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ids : array of int</span>
+<span class="sd">            Identities of agents whose velocities to set.</span>
+<span class="sd">        vs : array of ints</span>
+<span class="sd">            Velocities to set.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="c1"># index 0 is linear values (0v, 1w, 2w, ...)</span>
+        <span class="c1"># index 1 is angular values (0w, 1w, 2w, ...)</span>
+
+        <span class="c1"># check linear and angular velocity</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">robots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Vmax</span><span class="p">:</span>
+            <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">robots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Vmax</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">robots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Wmax</span><span class="p">:</span>
+            <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">robots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Wmax</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+
+        <span class="n">robots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">update_velocity</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span></div>
+
+    <span class="c1"># Change the state of agents within the ids array</span>
+
+
+<span class="c1"># TODO: get it to actually stop the robots</span>
+<div class="viewcode-block" id="stop_all"><a class="viewcode-back" href="../rst/util.html#util.stop_all">[docs]</a><span class="k">def</span> <span class="nf">stop_all</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">robots</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">robots</span><span class="p">:</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="wait_for_next"><a class="viewcode-back" href="../rst/util.html#util.wait_for_next">[docs]</a><span class="k">def</span> <span class="nf">wait_for_next</span><span class="p">():</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">loop</span><span class="p">:</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter 1 for done:&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">done</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">loop</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="kc">True</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

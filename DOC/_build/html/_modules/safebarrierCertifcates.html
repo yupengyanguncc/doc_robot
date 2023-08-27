@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>safebarrierCertifcates &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">safebarrierCertifcates</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for safebarrierCertifcates</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Safe barrier certificate</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd">   Author :       yyang52</span>
+<span class="sd">   date：          8/26/23</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd">   Change Activity:</span>
+<span class="sd">                   8/26/23: barrier certificate function adopt from Robotarium</span>
+<span class="sd">-------------------------------------------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;yyang52&#39;</span>
+
+<span class="kn">from</span> <span class="nn">transformations</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">cvxopt.solvers</span> <span class="kn">import</span> <span class="n">qp</span><span class="p">,</span> <span class="n">options</span>
+<span class="kn">from</span> <span class="nn">cvxopt</span> <span class="kn">import</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">sparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">comb</span>
+
+<span class="c1"># Disable output of CVXOPT</span>
+<span class="n">options</span><span class="p">[</span><span class="s1">&#39;show_progress&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Change default options of CVXOPT for faster solving</span>
+<span class="n">options</span><span class="p">[</span><span class="s1">&#39;reltol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># was e-2</span>
+<span class="n">options</span><span class="p">[</span><span class="s1">&#39;feastol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># was e-4</span>
+<span class="n">options</span><span class="p">[</span><span class="s1">&#39;maxiters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># default is 100</span>
+
+
+<div class="viewcode-block" id="create_single_integrator_barrier_certificate"><a class="viewcode-back" href="../rst/safebarrierCertifcates.html#safebarrierCertifcates.create_single_integrator_barrier_certificate">[docs]</a><span class="k">def</span> <span class="nf">create_single_integrator_barrier_certificate</span><span class="p">(</span><span class="n">barrier_gain</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">safety_radius</span><span class="o">=</span><span class="mf">0.17</span><span class="p">,</span> <span class="n">magnitude_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a barrier certificate for a single-integrator system.  This function</span>
+<span class="sd">    returns another function for optimization reasons.</span>
+
+<span class="sd">    :param barrier_gain: double (controls how quickly agents can approach each other.  lower = slower)</span>
+<span class="sd">    :param safety_radius: double (how far apart the agents will stay)</span>
+<span class="sd">    :param magnitude_limit: how fast the robot can move linearly.</span>
+<span class="sd">    :return: function (the barrier certificate function)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">barrier_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                     <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the barrier gain (barrier_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">barrier_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">safety_radius</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                      <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the safe distance between robots (safety_radius) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">safety_radius</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">magnitude_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                        <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">magnitude_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">barrier_gain</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the barrier gain (barrier_gain) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">barrier_gain</span>
+    <span class="k">assert</span> <span class="n">safety_radius</span> <span class="o">&gt;=</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the safe distance between robots (safety_radius) must be greater than or equal to the diameter of the robot (0.12m) plus the distance to the look ahead point used in the diffeomorphism if that is being used. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">safety_radius</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&lt;=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be less than the max speed of the robot (0.2m/s). Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the single-integrator robot velocity command (dxi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxi</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the robot states (x) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the dimension of the single integrator robot states (x) must be 2 ([x;y]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the dimension of the robot single integrator velocity command (dxi) must be 2 ([x_dot;y_dot]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the number of robot states (x) must be equal to the number of robot single integrator velocity commands (dxi). Recieved a current robot pose input array (x) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and single integrator velocity array (dxi) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Initialize some variables for computational savings</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">num_constraints</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">comb</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_constraints</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_constraints</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">sparse</span><span class="p">(</span><span class="n">matrix</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">)))</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">safety_radius</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+                <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">error</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">error</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Threshold control inputs before QP</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">idxs_to_normalize</span> <span class="o">=</span> <span class="p">(</span><span class="n">norms</span> <span class="o">&gt;</span> <span class="n">magnitude_limit</span><span class="p">)</span>
+        <span class="n">dxi</span><span class="p">[:,</span> <span class="n">idxs_to_normalize</span><span class="p">]</span> <span class="o">*=</span> <span class="n">magnitude_limit</span> <span class="o">/</span> <span class="n">norms</span><span class="p">[</span><span class="n">idxs_to_normalize</span><span class="p">]</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">qp</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">matrix</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">matrix</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="n">matrix</span><span class="p">(</span><span class="n">b</span><span class="p">))[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="create_single_integrator_barrier_certificate_with_boundary"><a class="viewcode-back" href="../rst/safebarrierCertifcates.html#safebarrierCertifcates.create_single_integrator_barrier_certificate_with_boundary">[docs]</a><span class="k">def</span> <span class="nf">create_single_integrator_barrier_certificate_with_boundary</span><span class="p">(</span><span class="n">barrier_gain</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">safety_radius</span><span class="o">=</span><span class="mf">0.17</span><span class="p">,</span>
+                                                               <span class="n">magnitude_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                                                               <span class="n">boundary_points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.6</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a barrier certificate for a single-integrator system with a rectangular boundary included.  This function</span>
+<span class="sd">    returns another function for optimization reasons.</span>
+
+<span class="sd">    :param barrier_gain: double (controls how quickly agents can approach each other.  lower = slower)</span>
+<span class="sd">    :param safety_radius: double (how far apart the agents will stay)</span>
+<span class="sd">    :param magnitude_limit: how fast the robot can move linearly.</span>
+<span class="sd">    :return f: function (the barrier certificate function)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">barrier_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                     <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the barrier gain (barrier_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">barrier_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">safety_radius</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                      <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the safe distance between robots (safety_radius) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">safety_radius</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">magnitude_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                        <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">magnitude_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">barrier_gain</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the barrier gain (barrier_gain) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">barrier_gain</span>
+    <span class="k">assert</span> <span class="n">safety_radius</span> <span class="o">&gt;=</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the safe distance between robots (safety_radius) must be greater than or equal to the diameter of the robot (0.12m) plus the distance to the look ahead point used in the diffeomorphism if that is being used. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">safety_radius</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&lt;=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;In the function create_single_integrator_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be less than the max speed of the robot (0.2m/s). Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the single-integrator robot velocity command (dxi) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxi</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the robot states (x) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the dimension of the single integrator robot states (x) must be 2 ([x;y]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the dimension of the robot single integrator velocity command (dxi) must be 2 ([x_dot;y_dot]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the function created by the create_single_integrator_barrier_certificate function, the number of robot states (x) must be equal to the number of robot single integrator velocity commands (dxi). Recieved a current robot pose input array (x) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and single integrator velocity array (dxi) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Initialize some variables for computational savings</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">dxi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">num_constraints</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">comb</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">N</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_constraints</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_constraints</span><span class="p">)</span>
+        <span class="c1"># H = sparse(matrix(2*np.identity(2*N)))</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">safety_radius</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+                <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">error</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">error</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="c1"># Pos Y</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">boundary_points</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">safety_radius</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">**</span> <span class="mi">3</span><span class="p">;</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Neg Y</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">boundary_points</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">safety_radius</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">**</span> <span class="mi">3</span><span class="p">;</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Pos X</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">boundary_points</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">safety_radius</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">**</span> <span class="mi">3</span><span class="p">;</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Neg X</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">barrier_gain</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">boundary_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">safety_radius</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">**</span> <span class="mi">3</span><span class="p">;</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Threshold control inputs before QP</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">idxs_to_normalize</span> <span class="o">=</span> <span class="p">(</span><span class="n">norms</span> <span class="o">&gt;</span> <span class="n">magnitude_limit</span><span class="p">)</span>
+        <span class="n">dxi</span><span class="p">[:,</span> <span class="n">idxs_to_normalize</span><span class="p">]</span> <span class="o">*=</span> <span class="n">magnitude_limit</span> <span class="o">/</span> <span class="n">norms</span><span class="p">[</span><span class="n">idxs_to_normalize</span><span class="p">]</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">qp</span><span class="p">(</span><span class="n">matrix</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="n">matrix</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">matrix</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="n">matrix</span><span class="p">(</span><span class="n">b</span><span class="p">))[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="c1"># result = solver2.solve_qp(H, f, A, b, 0)[0]</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+<div class="viewcode-block" id="create_unicycle_barrier_certificate"><a class="viewcode-back" href="../rst/safebarrierCertifcates.html#safebarrierCertifcates.create_unicycle_barrier_certificate">[docs]</a><span class="k">def</span> <span class="nf">create_unicycle_barrier_certificate</span><span class="p">(</span><span class="n">barrier_gain</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">safety_radius</span><span class="o">=</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">projection_distance</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                                        <span class="n">magnitude_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a unicycle barrier cetifcate to avoid collisions. Uses the diffeomorphism mapping</span>
+<span class="sd">    and single integrator implementation. For optimization purposes, this function returns</span>
+<span class="sd">    another function.</span>
+
+<span class="sd">    :param barrier_gain: double (controls how quickly agents can approach each other.  lower = slower)</span>
+<span class="sd">    :param safety_radius: double (how far apart the agents will stay)</span>
+<span class="sd">    :param projection_distance: double (how far ahead to place the bubble)</span>
+
+<span class="sd">    :return: function (the unicycle barrier certificate function)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check user input types</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">barrier_gain</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                     <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the barrier gain (barrier_gain) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">barrier_gain</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">safety_radius</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                      <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the safe distance between robots (safety_radius) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">safety_radius</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">projection_distance</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                            <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the projected point distance for the diffeomorphism between sinlge integrator and unicycle (projection_distance) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">projection_distance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">magnitude_limit</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span>
+                                        <span class="nb">float</span><span class="p">)),</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be an integer or float. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="n">magnitude_limit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Check user input ranges/sizes</span>
+    <span class="k">assert</span> <span class="n">barrier_gain</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the barrier gain (barrier_gain) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">barrier_gain</span>
+    <span class="k">assert</span> <span class="n">safety_radius</span> <span class="o">&gt;=</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the safe distance between robots (safety_radius) must be greater than or equal to the diameter of the robot (0.12m). Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">safety_radius</span>
+    <span class="k">assert</span> <span class="n">projection_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the projected point distance for the diffeomorphism between sinlge integrator and unicycle (projection_distance) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">projection_distance</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be positive. Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+    <span class="k">assert</span> <span class="n">magnitude_limit</span> <span class="o">&lt;=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;In the function create_unicycle_barrier_certificate, the maximum linear velocity of the robot (magnitude_limit) must be less than the max speed of the robot (0.2m/s). Recieved </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">magnitude_limit</span>
+
+    <span class="n">si_barrier_cert</span> <span class="o">=</span> <span class="n">create_single_integrator_barrier_certificate</span><span class="p">(</span><span class="n">barrier_gain</span><span class="o">=</span><span class="n">barrier_gain</span><span class="p">,</span>
+                                                                   <span class="n">safety_radius</span><span class="o">=</span><span class="n">safety_radius</span> <span class="o">+</span> <span class="n">projection_distance</span><span class="p">)</span>
+    <span class="n">si_to_uni_dyn</span><span class="p">,</span> <span class="n">uni_to_si_states</span> <span class="o">=</span> <span class="n">create_si_to_uni_mapping</span><span class="p">(</span><span class="n">projection_distance</span><span class="o">=</span><span class="n">projection_distance</span><span class="p">)</span>
+    <span class="n">uni_to_si_dyn</span> <span class="o">=</span> <span class="n">create_uni_to_si_dynamics</span><span class="p">(</span><span class="n">projection_distance</span><span class="o">=</span><span class="n">projection_distance</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">dxu</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        caculate safe velocity command for unicycle robot</span>
+<span class="sd">        :param dxu: input velocity</span>
+<span class="sd">        :param x: unicyle robot state</span>
+<span class="sd">        :return: safe control</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check user input types</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dxu</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_unicycle_barrier_certificate function, the unicycle robot velocity command (dxu) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">dxu</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;In the function created by the create_unicycle_barrier_certificate function, the robot states (x) must be a numpy array. Recieved type </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="c1"># Check user input ranges/sizes</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_unicycle_barrier_certificate function, the dimension of the unicycle robot states (x) must be 3 ([x;y;theta]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                   <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;In the function created by the create_unicycle_barrier_certificate function, the dimension of the robot unicycle velocity command (dxu) must be 2 ([v;w]). Recieved dimension </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> \
+                            <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;In the function created by the create_unicycle_barrier_certificate function, the number of robot states (x) must be equal to the number of robot unicycle velocity commands (dxu). Recieved a current robot pose input array (x) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2"> and single integrator velocity array (dxi) of size </span><span class="si">%r</span><span class="s2"> x </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dxu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">x_si</span> <span class="o">=</span> <span class="n">uni_to_si_states</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># Convert unicycle control command to single integrator one</span>
+        <span class="n">dxi</span> <span class="o">=</span> <span class="n">uni_to_si_dyn</span><span class="p">(</span><span class="n">dxu</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="c1"># Apply single integrator barrier certificate</span>
+        <span class="n">dxi</span> <span class="o">=</span> <span class="n">si_barrier_cert</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">x_si</span><span class="p">)</span>
+        <span class="c1"># Return safe unicycle command</span>
+        <span class="k">return</span> <span class="n">si_to_uni_dyn</span><span class="p">(</span><span class="n">dxi</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>safebarrierCertifcates module &mdash; robot  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            robot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">safebarrierCertifcates module</a><ul>
+<li><a class="reference internal" href="#safe-barrier-certificate">Safe barrier certificate</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">robot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">safebarrierCertifcates module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/rst/safebarrierCertifcates.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-safebarrierCertifcates">
+<span id="safebarriercertifcates-module"></span><h1>safebarrierCertifcates module<a class="headerlink" href="#module-safebarrierCertifcates" title="Permalink to this heading"></a></h1>
+<section id="safe-barrier-certificate">
+<h2>Safe barrier certificate<a class="headerlink" href="#safe-barrier-certificate" title="Permalink to this heading"></a></h2>
+<blockquote>
+<div><p>Author :       yyang52
+date：          8/26/23</p>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="safebarrierCertifcates.create_single_integrator_barrier_certificate">
+<span class="sig-prename descclassname"><span class="pre">safebarrierCertifcates.</span></span><span class="sig-name descname"><span class="pre">create_single_integrator_barrier_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">barrier_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.17</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnitude_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/safebarrierCertifcates.html#create_single_integrator_barrier_certificate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safebarrierCertifcates.create_single_integrator_barrier_certificate" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a barrier certificate for a single-integrator system.  This function
+returns another function for optimization reasons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>barrier_gain</strong> – double (controls how quickly agents can approach each other.  lower = slower)</p></li>
+<li><p><strong>safety_radius</strong> – double (how far apart the agents will stay)</p></li>
+<li><p><strong>magnitude_limit</strong> – how fast the robot can move linearly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>function (the barrier certificate function)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="safebarrierCertifcates.create_single_integrator_barrier_certificate_with_boundary">
+<span class="sig-prename descclassname"><span class="pre">safebarrierCertifcates.</span></span><span class="sig-name descname"><span class="pre">create_single_integrator_barrier_certificate_with_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">barrier_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.17</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnitude_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-</span> <span class="pre">1.6,</span> <span class="pre">1.6,</span> <span class="pre">-</span> <span class="pre">1.,</span> <span class="pre">1.])</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/safebarrierCertifcates.html#create_single_integrator_barrier_certificate_with_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safebarrierCertifcates.create_single_integrator_barrier_certificate_with_boundary" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a barrier certificate for a single-integrator system with a rectangular boundary included.  This function
+returns another function for optimization reasons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>barrier_gain</strong> – double (controls how quickly agents can approach each other.  lower = slower)</p></li>
+<li><p><strong>safety_radius</strong> – double (how far apart the agents will stay)</p></li>
+<li><p><strong>magnitude_limit</strong> – how fast the robot can move linearly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return f<span class="colon">:</span></dt>
+<dd class="field-even"><p>function (the barrier certificate function)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="safebarrierCertifcates.create_unicycle_barrier_certificate">
+<span class="sig-prename descclassname"><span class="pre">safebarrierCertifcates.</span></span><span class="sig-name descname"><span class="pre">create_unicycle_barrier_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">barrier_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projection_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnitude_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/safebarrierCertifcates.html#create_unicycle_barrier_certificate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safebarrierCertifcates.create_unicycle_barrier_certificate" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a unicycle barrier cetifcate to avoid collisions. Uses the diffeomorphism mapping
+and single integrator implementation. For optimization purposes, this function returns
+another function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>barrier_gain</strong> – double (controls how quickly agents can approach each other.  lower = slower)</p></li>
+<li><p><strong>safety_radius</strong> – double (how far apart the agents will stay)</p></li>
+<li><p><strong>projection_distance</strong> – double (how far ahead to place the bubble)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>function (the unicycle barrier certificate function)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, yupeng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
